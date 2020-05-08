@@ -13115,13 +13115,14 @@ div#notebook {
 
   
 
-  <div class="
+  <div class="nbinteract-hide_in
       cell border-box-sizing code_cell rendered">
     <div class="input">
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">IPython</span> <span class="kn">import</span> <span class="n">display</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#HIDDEN</span>
+<span class="kn">from</span> <span class="nn">IPython</span> <span class="kn">import</span> <span class="n">display</span>
 <span class="kn">from</span> <span class="nn">ipywidgets</span> <span class="kn">import</span> <span class="n">widgets</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -13130,16 +13131,259 @@ div#notebook {
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">pandas.tseries.offsets</span> <span class="kn">import</span> <span class="n">MonthEnd</span><span class="p">,</span> <span class="n">MonthBegin</span>
 
+
+
+<span class="k">def</span> <span class="nf">split_nfes_values</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">days_in_between</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">column</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;value_split_</span><span class="si">{column}</span><span class="s2">&quot;</span><span class="p">})</span>
+    <span class="n">list_terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">days_in_between</span> <span class="k">if</span> <span class="n">l</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">l</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">parcelas</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">days_in_between</span><span class="p">):</span>
+        <span class="n">df_local</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;value_split_</span><span class="si">{column}</span><span class="s2">&quot;</span><span class="p">]]</span>
+        <span class="n">df_local</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_local</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">days_in_between</span><span class="p">[</span><span class="n">e</span><span class="p">])</span>
+        <span class="n">parcelas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_local</span><span class="p">)</span>
+        
+    <span class="n">df_parcelas</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">parcelas</span><span class="p">)</span>
+    <span class="n">df_parcelas</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    
+    <span class="k">return</span> <span class="n">df_parcelas</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)[[</span><span class="sa">f</span><span class="s2">&quot;value_split_</span><span class="si">{column}</span><span class="s2">&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
+    
+
 <span class="k">class</span> <span class="nc">Cashflow_simulation</span><span class="p">:</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">style</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;description_width&#39;</span><span class="p">:</span> <span class="s1">&#39;initial&#39;</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">marging_industry_text</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Margem:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="s2">&quot;2%&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;2%&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">income_per_year_text</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Fat. Anual (K):&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">30000</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_employees_text</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;# Funcionários:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_salary_text</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Salário Médio (K):&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">percentage_receivables_text</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">% F</span><span class="s1">ornecedores:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="s2">&quot;35%&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;35%&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cash_text</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;$ Caixa (K):&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">months_text</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Meses Simulação:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_1</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 1:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_2</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 2:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_3</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 3:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">47</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">47</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_4</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 4:&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_5</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 5:&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_1</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 1:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_2</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 2:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_3</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 3:&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="mi">47</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">47</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_4</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 4:&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_5</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Parcela 5:&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        
+        <span class="c1"># Tempo de estoque em dias</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">months_check</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">month_boxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">months</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Jan&quot;</span><span class="p">,</span> <span class="s2">&quot;Fev&quot;</span><span class="p">,</span> <span class="s2">&quot;Mar&quot;</span><span class="p">,</span> <span class="s2">&quot;Abr&quot;</span><span class="p">,</span> <span class="s2">&quot;Mai&quot;</span><span class="p">,</span> <span class="s2">&quot;Jun&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;Jul&quot;</span><span class="p">,</span> <span class="s2">&quot;Ago&quot;</span><span class="p">,</span> <span class="s2">&quot;Set&quot;</span><span class="p">,</span> <span class="s2">&quot;Out&quot;</span><span class="p">,</span> <span class="s2">&quot;Nov&quot;</span><span class="p">,</span> <span class="s2">&quot;Dez&quot;</span><span class="p">]</span>
+        
+        <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">months</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">months_check</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{m}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">month_box</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">months_check</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">month_boxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">month_box</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">months_check</span> <span class="o">=</span> <span class="p">[]</span>
+            
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">month_boxes</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">HBox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">month_boxs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="kc">None</span>
+        
         <span class="bp">self</span><span class="o">.</span><span class="n">out</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Output</span><span class="p">()</span>
+        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_general_company</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">([</span>
+             <span class="n">widgets</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;center&gt;Informações Empresa:&quot;</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">marging_industry_text</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_employees_text</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_salary_text</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">percentage_receivables_text</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cash_text</span><span class="p">,</span>
+        <span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_simulation</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">([</span>
+            <span class="n">widgets</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;center&gt;&lt;b&gt;Informações p/ Simulação:&quot;</span><span class="p">),</span>
+            <span class="n">widgets</span><span class="o">.</span><span class="n">HBox</span><span class="p">([</span>
+                <span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">([</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">income_per_year_text</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">months_text</span><span class="p">,</span>    
+                <span class="p">]),</span>
+                <span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">([</span><span class="n">widgets</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;b&gt;Meses com maior Faturamento:&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">month_boxes</span><span class="p">])</span>
+            <span class="p">])</span>
+        <span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_nfes_seller</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">([</span>
+            <span class="n">widgets</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;center&gt;&lt;b&gt;Parcelas pagamento Sacados:&quot;</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_1</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_2</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_3</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_4</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_seller_5</span><span class="p">,</span>
+        <span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_nfes_buyer</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">([</span>
+            <span class="n">widgets</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;center&gt;&lt;b&gt;Parcelas pagamento Fornecedores:&quot;</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_1</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_2</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_3</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_4</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_5</span><span class="p">,</span>
+        <span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">box</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">HBox</span><span class="p">([</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">box_simulation</span>
+        <span class="p">],</span> <span class="n">layout</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span><span class="n">border</span><span class="o">=</span><span class="s1">&#39;3px solid black&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+        
         <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">FileUpload</span><span class="p">(</span><span class="n">accept</span><span class="o">=</span> <span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Click Me!&quot;</span><span class="p">)</span>
         
-        <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">marging_industry_text</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="p">]</span> <span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span><span class="n">border</span><span class="o">=</span><span class="s1">&#39;3px solid white&#39;</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">HBox</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">box_general_company</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_nfes_buyer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="p">],</span> <span class="n">layout</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span><span class="n">border</span><span class="o">=</span><span class="s1">&#39;3px solid black&#39;</span><span class="p">)),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">button</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">out</span>
+                       <span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">on_button_clicked</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_button_clicked</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">button</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">on_button_clicked</span><span class="p">)</span>
         
+        
+
+    <span class="k">def</span> <span class="nf">on_button_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">:</span>
+            <span class="n">df_upload</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">clear_output</span><span class="p">()</span>
+            
+            <span class="c1"># Get Initial Input Values</span>
+
+            <span class="n">marging_industry</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marging_industry_text</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="o">/</span><span class="mi">100</span>
+            <span class="n">num_employees</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_employees_text</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">avg_salary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">avg_salary_text</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="mf">1.3</span> <span class="o">*</span> <span class="n">num_employees</span> <span class="c1"># $ Annual total package / 12 months</span>
+
+            <span class="n">percentage_receivables</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">percentage_receivables_text</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="o">/</span><span class="mi">100</span>
+            <span class="n">cash</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cash_text</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">months</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">months_text</span><span class="o">.</span><span class="n">value</span>
+            
+            
+            <span class="n">df_upload</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="n">decimal</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">max_fat_date</span> <span class="o">=</span> <span class="n">df_upload</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;issued_at_value &gt; 0&quot;</span><span class="p">)[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">df_upload</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;date &lt;= @max_fat_date&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;issued_at_value&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="mi">1000</span>
+            <span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;due_date_value&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="mi">1000</span>
+            <span class="n">total_revenue</span> <span class="o">=</span> <span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;issued_at_value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            
+            <span class="n">df_upload</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">])</span>
+            <span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;month&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m&quot;</span><span class="p">)</span>
+            <span class="n">months</span> <span class="o">=</span> <span class="n">df_upload</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;issued_at_value &gt; 0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">month</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+            <span class="n">salary</span> <span class="o">=</span> <span class="n">avg_salary</span> <span class="o">*</span> <span class="n">months</span>
+            <span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;cost_total&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;issued_at_value&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">marging_industry</span><span class="p">))</span>
+            <span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;cost_receivable&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;cost_total&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">percentage_receivables</span><span class="p">)</span>
+            
+
+            <span class="n">df_salary</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            <span class="n">df_salary</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;%Y%m&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">MonthEnd</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">df_salary</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df_salary</span><span class="p">[</span><span class="s2">&quot;salary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_salary</span>
+            
+            <span class="n">df_other_expense</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            <span class="n">df_other_expense</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;%Y%m&quot;</span><span class="p">)</span> <span class="o">-</span> <span class="n">MonthBegin</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">df_other_expense</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+            <span class="n">annual_other_expenses</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">df_upload</span><span class="p">[</span><span class="s2">&quot;cost_total&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">percentage_receivables</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="n">salary</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">monthly_other_expenses</span> <span class="o">=</span> <span class="n">annual_other_expenses</span><span class="o">/</span><span class="n">months</span>
+            
+            <span class="n">df_other_expense</span><span class="p">[</span><span class="s2">&quot;other_expenses&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">monthly_other_expenses</span>
+            
+            <span class="n">df_cashflow</span> <span class="o">=</span> <span class="n">df_upload</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_salary</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">)</span>
+            <span class="n">df_cashflow</span> <span class="o">=</span> <span class="n">df_cashflow</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_other_expense</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">)</span>
+            <span class="n">df_cashflow</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df_cashflow</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df_cashflow</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">df_cashflow</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;upload.csv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="n">decimal</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            
+            <span class="n">days_in_between_buyer</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_1</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_2</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_3</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_4</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">avg_lenght_buyer_5</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
+            
+            <span class="n">df_split_receivables_cost</span> <span class="o">=</span> <span class="n">split_nfes_values</span><span class="p">(</span><span class="n">df_cashflow</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">days_in_between</span><span class="o">=</span><span class="n">days_in_between_buyer</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;cost_receivable&quot;</span><span class="p">)</span>
+            <span class="n">df_split_receivables_cost</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;value_split_cost_receivable&quot;</span><span class="p">:</span> <span class="s2">&quot;receivable_cost&quot;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+            
+            <span class="n">df_cashflow</span> <span class="o">=</span> <span class="n">df_cashflow</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_split_receivables_cost</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">)</span>
+            <span class="n">df_cashflow</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;other_expenses&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;receivable_cost&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;salary&quot;</span><span class="p">]</span>
+            <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;cost_book&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;other_expenses&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;cost_receivable&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;salary&quot;</span><span class="p">]</span>
+            
+            <span class="n">min_date</span> <span class="o">=</span> <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="n">MonthBegin</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">max_date</span> <span class="o">=</span> <span class="n">df_cashflow</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">MonthEnd</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">df_dates</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">])</span>
+            <span class="n">df_dates</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">end</span> <span class="o">=</span> <span class="n">max_date</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">min_date</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;D&quot;</span><span class="p">)</span>
+            <span class="n">df_year</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_dates</span><span class="p">,</span> <span class="n">df_cashflow</span><span class="p">])</span>
+            <span class="n">df_year</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df_year</span> <span class="o">=</span> <span class="n">df_year</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">df_year</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cash&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">df_year</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;cash&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cash</span>
+            <span class="n">df_year</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+            <span class="n">df_year</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_cumsum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+            <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;income_cumsum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;due_date_value&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cash&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+            <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_book_cumsum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_book&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+            <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;income_book_cumsum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;issued_at_value&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cash&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+           
+            <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;net&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;income_cumsum&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_cumsum&quot;</span><span class="p">]</span>
+            <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;net_book&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;income_book_cumsum&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_book_cumsum&quot;</span><span class="p">]</span>
+
+            <span class="n">total_cost</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_book&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">total_revenue</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;issued_at_value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">margin</span> <span class="o">=</span> <span class="n">total_revenue</span><span class="o">/</span><span class="n">total_cost</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">cost_with_salary</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;salary&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">cost_with_receivable</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_receivable&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">cost_with_other_expenses</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;other_expenses&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">total_cost</span><span class="p">,</span> <span class="n">total_revenue</span><span class="p">,</span> <span class="n">margin</span><span class="p">,</span> <span class="n">cost_with_salary</span><span class="p">,</span> <span class="n">cost_with_receivable</span><span class="p">,</span> <span class="n">cost_with_other_expenses</span><span class="p">)</span>
+            
+            
+            <span class="n">NUM_ROWS</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">IMGs_IN_ROW</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">NUM_ROWS</span><span class="p">,</span> <span class="n">IMGs_IN_ROW</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+            
+            <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;net&quot;</span><span class="p">])</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;net_book&quot;</span><span class="p">])</span>
+            
+            <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;issued_at_value&quot;</span><span class="p">])</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_book&quot;</span><span class="p">])</span>
+
+            <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Available Cash Per Day - Cashflow&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Available Cash Per Day - Book Value&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Revenue&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cost&#39;</span><span class="p">)</span>
+                
+            
+
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Cashflow Comparison: Real x Book Value&#39;</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            
+<span class="c1">#             self.uploader.data = []</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="o">.</span><span class="n">set_state</span><span class="p">({</span><span class="s2">&quot;_counter&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+<span class="c1">#             df_year.to_csv(&quot;output.csv&quot;, index=False, sep=&quot;;&quot;, decimal=&quot;,&quot;)</span>
+            
+            <span class="k">return</span> <span class="n">df_year</span>
         
 <span class="n">cf</span> <span class="o">=</span> <span class="n">Cashflow_simulation</span><span class="p">()</span>
 </pre></div>
@@ -13180,23 +13424,34 @@ div#notebook {
 
 </div>
 
-</div>
-</div>
+<div class="output_area">
 
+    
+
+
+
+  <div class="output_subarea output_widget_view ">
+    <button class="js-nbinteract-widget">
+      Loading widgets...
+    </button>
   </div>
 
-  
+</div>
 
-  <div class="
-      cell border-box-sizing code_cell rendered">
-    <div class="input">
+<div class="output_area">
 
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span> 
-</pre></div>
+    
 
-    </div>
+
+
+  <div class="output_subarea output_widget_view ">
+    <button class="js-nbinteract-widget">
+      Loading widgets...
+    </button>
+  </div>
+
+</div>
+
 </div>
 </div>
 
