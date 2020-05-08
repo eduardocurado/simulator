@@ -13373,9 +13373,6 @@ div#notebook {
             <span class="n">total_cost</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_book&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="n">total_revenue</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;issued_at_value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="n">margin</span> <span class="o">=</span> <span class="n">total_revenue</span><span class="o">/</span><span class="n">total_cost</span> <span class="o">-</span> <span class="mi">1</span>
-            <span class="n">cost_with_salary</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;salary&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-            <span class="n">cost_with_receivable</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;cost_receivable&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-            <span class="n">cost_with_other_expenses</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;other_expenses&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             
             <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;month&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m&quot;</span><span class="p">)</span>
             <span class="n">monthly_values</span> <span class="o">=</span> <span class="n">df_year</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;month&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)[[</span><span class="s2">&quot;issued_at_value&quot;</span><span class="p">,</span> <span class="s2">&quot;due_date_value&quot;</span><span class="p">,</span> <span class="s2">&quot;cost&quot;</span><span class="p">,</span> <span class="s2">&quot;other_expenses&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -13393,26 +13390,14 @@ div#notebook {
             
             <span class="n">df_overview</span><span class="p">[</span><span class="s2">&quot;Margem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">margin</span> <span class="o">*</span> <span class="mi">100</span>
             <span class="n">df_overview</span><span class="p">[</span><span class="s2">&quot;Prazo médio no período&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">mean_term</span><span class="p">)</span>
+            <span class="n">df_overview</span><span class="p">[</span><span class="s2">&quot;Caixa final no período&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_year</span><span class="p">[</span><span class="s2">&quot;net_cumsum&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
             <span class="n">df_overview</span> <span class="o">=</span> <span class="n">df_overview</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">round</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">df_overview</span> <span class="o">=</span> <span class="n">df_overview</span><span class="o">.</span><span class="n">T</span>
+            
             <span class="n">df_overview</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Resumo da simulação&quot;</span><span class="p">]</span>
             <span class="n">df_overview</span><span class="p">[</span><span class="s2">&quot;Resumo da simulação&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_overview</span><span class="p">[</span><span class="s2">&quot;Resumo da simulação&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-<span class="c1">#             df_overview.style.set_properties(**{&#39;text-align&#39;: &#39;right&#39;})</span>
+            
             <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">df_overview</span><span class="o">.</span><span class="n">to_html</span><span class="p">()))</span>
-            
-            <span class="n">overview</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                &lt;h1&gt;Informações da simulação&lt;/h1&gt;</span>
-<span class="s2">                &lt;p&gt;Meses Simulação: </span><span class="si">{months}</span><span class="s2">&lt;/p&gt;</span>
-<span class="s2">                &lt;p&gt;Margem no período: {round(margin * 100, 2)} %&lt;/p&gt;</span>
-<span class="s2">                &lt;p&gt;Faturmaneto no período: {round(total_revenue, 2)} K ({total_revenue/months})&lt;/p&gt;</span>
-<span class="s2">                &lt;p&gt;Custo total no período: {round(total_cost, 2)} K ({total_cost/months})&lt;/p&gt;</span>
-<span class="s2">                &lt;p&gt;Custo com Fornecedores no período: {round(cost_with_receivable, 2)} K ({cost_with_receivable/months})&lt;/p&gt;</span>
-<span class="s2">                </span>
-<span class="s2">                &lt;p&gt;Custo com salário: {round(cost_with_salary, 2)} K ({cost_with_salary/months})&lt;/p&gt;</span>
-<span class="s2">                &lt;p&gt;Custo com outras despesas: {round(cost_with_other_expenses, 2)} K ({cost_with_other_expenses/months})&lt;/p&gt;</span>
-<span class="s2">                &lt;p&gt;Prazo médio: {round(mean_term)}&lt;/p&gt;</span>
-<span class="s2">            &quot;&quot;&quot;</span>
-            
             
             <span class="n">NUM_ROWS</span> <span class="o">=</span> <span class="mi">2</span>
             <span class="n">IMGs_IN_ROW</span> <span class="o">=</span> <span class="mi">2</span>
@@ -13438,7 +13423,6 @@ div#notebook {
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
             
             <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="o">.</span><span class="n">set_state</span><span class="p">({</span><span class="s2">&quot;_counter&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
-<span class="c1">#             df_year.to_csv(&quot;output.csv&quot;, index=False, sep=&quot;;&quot;, decimal=&quot;,&quot;)</span>
             
             <span class="k">return</span> <span class="n">df_year</span>
         
