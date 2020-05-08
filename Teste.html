@@ -13130,8 +13130,8 @@ div#notebook {
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">pandas.tseries.offsets</span> <span class="kn">import</span> <span class="n">MonthEnd</span><span class="p">,</span> <span class="n">MonthBegin</span>
-
-
+<span class="kn">from</span> <span class="nn">pandas.plotting</span> <span class="kn">import</span> <span class="n">register_matplotlib_converters</span>
+<span class="n">register_matplotlib_converters</span><span class="p">()</span>
 
 <span class="k">def</span> <span class="nf">split_nfes_values</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">days_in_between</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
     <span class="n">list_terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">days_in_between</span> <span class="k">if</span> <span class="n">l</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">l</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
@@ -13252,7 +13252,7 @@ div#notebook {
         <span class="bp">self</span><span class="o">.</span><span class="n">button</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Click Me!&quot;</span><span class="p">)</span>
         
         <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">HBox</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">box_general_company</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_nfes_buyer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_nfes_seller</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="p">],</span> <span class="n">layout</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span><span class="n">border</span><span class="o">=</span><span class="s1">&#39;3px solid black&#39;</span><span class="p">)),</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">,</span>
+<span class="c1">#                         self.box,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">button</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">out</span>
                        <span class="p">)</span>
@@ -13385,9 +13385,7 @@ div#notebook {
             <span class="n">monthly_values</span> <span class="o">=</span> <span class="n">df_year</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;month&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)[[</span><span class="s2">&quot;issued_at_value&quot;</span><span class="p">,</span> <span class="s2">&quot;due_date_value&quot;</span><span class="p">,</span> <span class="s2">&quot;cost&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="n">negative_months</span> <span class="o">=</span> <span class="n">monthly_values</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;due_date_value &lt; cost&quot;</span><span class="p">)[</span><span class="s2">&quot;month&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
             
-            <span class="n">overview</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;&lt;html&gt;</span>
-<span class="s2">                &lt;body&gt;</span>
-
+            <span class="n">overview</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">                &lt;h1&gt;Informações da simulação&lt;/h1&gt;</span>
 <span class="s2">                &lt;p&gt;Meses Simulação: </span><span class="si">{months}</span><span class="s2">&lt;/p&gt;</span>
 <span class="s2">                &lt;p&gt;Margem no período: {round(margin * 100, 2)} %&lt;/p&gt;</span>
@@ -13398,11 +13396,6 @@ div#notebook {
 <span class="s2">                &lt;p&gt;Custo com salário: {round(cost_with_salary, 2)} K ({cost_with_salary/months})&lt;/p&gt;</span>
 <span class="s2">                &lt;p&gt;Custo com outras despesas: {round(cost_with_other_expenses, 2)} K ({cost_with_other_expenses/months})&lt;/p&gt;</span>
 <span class="s2">                &lt;p&gt;Prazo médio: {round(mean_term)}&lt;/p&gt;</span>
-<span class="s2">                </span>
-<span class="s2">                </span>
-
-<span class="s2">                &lt;/body&gt;</span>
-<span class="s2">                &lt;/html&gt;</span>
 <span class="s2">            &quot;&quot;&quot;</span>
             <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">([</span><span class="n">widgets</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">overview</span><span class="p">)]))</span>
             
@@ -13421,6 +13414,8 @@ div#notebook {
             <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Available Cash Per Day - Book Value&#39;</span><span class="p">)</span>
             <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Revenue&#39;</span><span class="p">)</span>
             <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Due Date - revenue&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelrotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
                 
             
 
@@ -13428,9 +13423,8 @@ div#notebook {
             <span class="n">f</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
             
-<span class="c1">#             self.uploader.data = []</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="o">.</span><span class="n">set_state</span><span class="p">({</span><span class="s2">&quot;_counter&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
-            <span class="n">df_year</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;output.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="n">decimal</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+<span class="c1">#             df_year.to_csv(&quot;output.csv&quot;, index=False, sep=&quot;;&quot;, decimal=&quot;,&quot;)</span>
             
             <span class="k">return</span> <span class="n">df_year</span>
         
@@ -13444,20 +13438,6 @@ div#notebook {
 <div class="output_wrapper">
 <div class="output">
 
-
-<div class="output_area">
-
-    
-
-
-
-  <div class="output_subarea output_widget_view ">
-    <button class="js-nbinteract-widget">
-      Loading widgets...
-    </button>
-  </div>
-
-</div>
 
 <div class="output_area">
 
