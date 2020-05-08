@@ -13131,6 +13131,9 @@ div#notebook {
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">pandas.tseries.offsets</span> <span class="kn">import</span> <span class="n">MonthEnd</span><span class="p">,</span> <span class="n">MonthBegin</span>
 <span class="kn">from</span> <span class="nn">pandas.plotting</span> <span class="kn">import</span> <span class="n">register_matplotlib_converters</span>
+<span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="kn">import</span> <span class="n">display</span> <span class="k">as</span> <span class="n">display_core</span><span class="p">,</span> <span class="n">HTML</span>
+
+
 <span class="n">register_matplotlib_converters</span><span class="p">()</span>
 
 
@@ -13400,8 +13403,7 @@ div#notebook {
             <span class="n">df_overview</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Resumo da simulação&quot;</span><span class="p">]</span>
             <span class="n">df_overview</span><span class="p">[</span><span class="s2">&quot;Resumo da simulação&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_overview</span><span class="p">[</span><span class="s2">&quot;Resumo da simulação&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
             
-            <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">df_overview</span><span class="o">.</span><span class="n">to_html</span><span class="p">()))</span>
-            <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;center&gt;&lt;b&gt;Parcelas pagamento Fornecedores:&quot;</span><span class="p">))</span>
+            <span class="n">display_core</span><span class="p">(</span><span class="n">HTML</span><span class="p">(</span><span class="n">df_overview</span><span class="o">.</span><span class="n">to_html</span><span class="p">()))</span>
             
             <span class="n">NUM_ROWS</span> <span class="o">=</span> <span class="mi">2</span>
             <span class="n">IMGs_IN_ROW</span> <span class="o">=</span> <span class="mi">2</span>
